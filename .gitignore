@@ -49,14 +49,11 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-
 # Sphinx documentation
 docs/_build/
 
 # PyBuilder
 target/
 
-#Ipython Notebook
-.ipynb_checkpoints
+# Vim.
+*.swp
