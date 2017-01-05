@@ -341,7 +341,7 @@ class Rofi(object):
         return index, key
 
 
-    def _generic_entry(self, prompt, validator, message=None):
+    def _generic_entry(self, prompt, validator, message=None, **kwargs):
         """Internal helper method for entry methods.
 
         Parameters
