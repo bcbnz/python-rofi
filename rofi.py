@@ -449,18 +449,23 @@ class Rofi(object):
         return index, key
 
 
-    def _generic_entry(self, prompt, validator, message=None, **kwargs):
-        """Internal helper method for entry methods.
+    def generic_entry(self, prompt, validator=None, message=None, **kwargs):
+        """A generic entry box.
 
         Parameters
         ----------
         prompt: string
             Text prompt for the entry.
-        validator: function
-            Function which takes the string the user entered and returns a
-            tuple (value, error). Value is the entered value converted to the
-            appropriate Python type ready for returning, and error is either a
-            string if the entered text was invalid, or None if it was valid.
+        validator: function, optional
+            A function to validate and convert the value entered by the user.
+            It should take one parameter, the string that the user entered, and
+            return a tuple (value, error). The value should be the users entry
+            converted to the appropriate Python type, or None if the entry was
+            invalid. The error message should be a string telling the user what
+            was wrong, or None if the entry was valid. The prompt will be
+            re-displayed to the user (along with the error message) until they
+            enter a valid value. If no validator is given, the text that the
+            user entered is returned as-is.
         message: string
             Optional message to display under the entry.
 
@@ -468,6 +473,13 @@ class Rofi(object):
         -------
         The value returned by the validator, or None if the dialog was
         cancelled.
+
+        Examples
+        --------
+        Enforce a minimum entry length:
+        >>> r = Rofi()
+        >>> validator = lambda s: (s, None) if len(s) > 6 else (None, "Too short")
+        >>> r.generic_entry('Enter a 7-character or longer string: ', validator)
 
         """
         error = ""
@@ -497,9 +509,13 @@ class Rofi(object):
                 return None
 
             # Get rid of the trailing newline and check its validity.
-            value, error = validator(stdout.rstrip('\n'))
-            if not error:
-                return value
+            text = stdout.rstrip('\n')
+            if validator:
+                value, error = validator(text)
+                if not error:
+                    return value
+            else:
+                return text
 
 
     def text_entry(self, prompt, message=None, allow_blank=False, strip=True, **kwargs):
@@ -531,7 +547,7 @@ class Rofi(object):
 
             return text, None
 
-        return self._generic_entry(prompt, text_validator, message, **kwargs)
+        return self.generic_entry(prompt, text_validator, message, **kwargs)
 
 
     def integer_entry(self, prompt, message=None, min=None, max=None, **kwargs):
@@ -572,7 +588,7 @@ class Rofi(object):
 
             return value, None
 
-        return self._generic_entry(prompt, integer_validator, message, **kwargs)
+        return self.generic_entry(prompt, integer_validator, message, **kwargs)
 
 
     def float_entry(self, prompt, message=None, min=None, max=None, **kwargs):
@@ -613,7 +629,7 @@ class Rofi(object):
 
             return value, None
 
-        return self._generic_entry(prompt, float_validator, message, **kwargs)
+        return self.generic_entry(prompt, float_validator, message, **kwargs)
 
 
     def decimal_entry(self, prompt, message=None, min=None, max=None, **kwargs):
@@ -654,7 +670,7 @@ class Rofi(object):
 
             return value, None
 
-        return self._generic_entry(prompt, decimal_validator, message, **kwargs)
+        return self.generic_entry(prompt, decimal_validator, message, **kwargs)
 
 
     def exit_with_error(self, error, **kwargs):
