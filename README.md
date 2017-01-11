@@ -43,10 +43,10 @@ Well, you need to have the `rofi` executable available on the system path
 
 ## What Python versions are supported?
 
-Right now, only Python 3.5 -- the new
-[subprocess.run()](https://docs.python.org/3/library/subprocess.html#subprocess.run)
-function is used in several places. I do intend to make it compatible with
-Python 2.7 at some point though.
+It *should* work with any version of Python from 2.7 onwards. It may work with
+older versions, though no specific support for them will be added. It is
+developed on Python 2.7 and Python 3.6 -- the latest versions of the Python 2
+and 3 branches respectively.
 
 
 ## What license does it use?

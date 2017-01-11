@@ -3,7 +3,7 @@
 #
 # The MIT License
 #
-# Copyright (c) 2016 Blair Bonnett <blair.bonnett@gmail.com>
+# Copyright (c) 2016, 2017 Blair Bonnett <blair.bonnett@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,29 @@
 
 import atexit
 from decimal import Decimal, InvalidOperation
-import re
 import signal
 import subprocess
+import time
+
+
+# Python < 3.2 doesn't provide a context manager interface for Popen.
+# Let's make our own wrapper if needed.
+if hasattr(subprocess.Popen, '__exit__'):
+    Popen = subprocess.Popen
+else:
+    class ContextManagedPopen(subprocess.Popen):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, type, value, traceback):
+            if self.stdout:
+                self.stdout.close()
+            if self.stderr:
+                self.stderr.close()
+            if self.stdin:
+                self.stdin.close()
+            self.wait()
+    Popen = ContextManagedPopen
 
 
 class Rofi(object):
@@ -141,13 +161,98 @@ class Rofi(object):
             self._process.send_signal(signal.SIGINT)
 
             # If it doesn't close itself promptly, be brutal.
-            try:
-                self._process.wait(timeout=1)
-            except subprocess.TimeoutExpired:
-                self._process.send_signal(signal.SIGKILL)
+            # Python 3.2+ added the timeout option to wait() and the
+            # corresponding TimeoutExpired exception. If they exist, use them.
+            if hasattr(subprocess, 'TimeoutExpired'):
+                try:
+                    self._process.wait(timeout=1)
+                except subprocess.TimeoutExpired:
+                    self._process.send_signal(signal.SIGKILL)
+
+            # Otherwise, roll our own polling loop.
+            else:
+                # Give it 1s, checking every 10ms.
+                count = 0
+                while count < 100:
+                    if self._process.poll() is not None:
+                        break
+                    time.sleep(0.01)
+
+                # Still hasn't quit.
+                if self._process.poll() is None:
+                    self._process.send_signal(signal.SIGKILL)
 
             # Clean up.
             self._process = None
+
+
+    def _run_blocking(self, args, input=None):
+        """Internal API: run a blocking command with subprocess.
+
+        This closes any open non-blocking dialog before running the command.
+
+        Parameters
+        ----------
+        args: Popen constructor arguments
+            Command to run.
+        input: string
+            Value to feed to the stdin of the process.
+
+        Returns
+        -------
+        (returncode, stdout)
+            The exit code (integer) and stdout value (string) from the process.
+
+        """
+        # Close any existing dialog.
+        if self._process:
+            self.close()
+
+        # Make sure we grab stdout as text (not bytes).
+        kwargs = {}
+        kwargs['stdout'] = subprocess.PIPE
+        kwargs['universal_newlines'] = True
+
+        # Use the run() method if available (Python 3.5+).
+        if hasattr(subprocess, 'run'):
+            result = subprocess.run(args, input=input, **kwargs)
+            return result.returncode, result.stdout
+
+        # Have to do our own. If we need to feed stdin, we must open a pipe.
+        if input is not None:
+            kwargs['stdin'] = subprocess.PIPE
+
+        # Start the process.
+        with Popen(args, **kwargs) as proc:
+            # Talk to it (no timeout). This will wait until termination.
+            stdout, stderr = proc.communicate(input)
+
+            # Find out the return code.
+            returncode = proc.poll()
+
+            # Done.
+            return returncode, stdout
+
+
+    def _run_nonblocking(self, args, input=None):
+        """Internal API: run a non-blocking command with subprocess.
+
+        This closes any open non-blocking dialog before running the command.
+
+        Parameters
+        ----------
+        args: Popen constructor arguments
+            Command to run.
+        input: string
+            Value to feed to the stdin of the process.
+
+        """
+        # Close any existing dialog.
+        if self._process:
+            self.close()
+
+        # Start the new one.
+        self._process = subprocess.Popen(args, stdout=subprocess.PIPE)
 
 
     def _common_args(self, allow_fullscreen=True, **kwargs):
@@ -199,8 +304,7 @@ class Rofi(object):
         args.extend(self._common_args(allow_fullscreen=False, **kwargs))
 
         # Close any existing window and show the error.
-        self.close()
-        subprocess.run(args)
+        self._run_blocking(args)
 
 
     def status(self, message, **kwargs):
@@ -225,9 +329,8 @@ class Rofi(object):
         args = ['rofi', '-e', message]
         args.extend(self._common_args(allow_fullscreen=False, **kwargs))
 
-        # Close any existing window, show the error, and return immediately.
-        self.close()
-        self._process = subprocess.Popen(args)
+        # Update the status.
+        self._run_nonblocking(args)
 
 
     def select(self, prompt, options, message="", select=None, **kwargs):
@@ -285,13 +388,20 @@ class Rofi(object):
         # Configure the key bindings.
         user_keys = set()
         for k, v in kwargs.items():
-            match = re.fullmatch(r'key(\d+)', k)
-            if match:
-                key, action = v
-                user_keys.add(int(match.group(1)))
-                args.extend(['-kb-custom-{0:s}'.format(match.group(1)), key])
-                if action:
-                    display_bindings.append("<b>{0:s}</b>: {1:s}".format(key, action))
+            # See if the keyword name matches the needed format.
+            if not k.startswith('key'):
+                continue
+            try:
+                keynum = int(k[3:])
+            except ValueError:
+                continue
+
+            # Add it to the set.
+            key, action = v
+            user_keys.add(keynum)
+            args.extend(['-kb-custom-{0:s}'.format(k[3:]), key])
+            if action:
+                display_bindings.append("<b>{0:s}</b>: {1:s}".format(key, action))
 
         # And the global exit bindings.
         exit_keys = set()
@@ -317,21 +427,19 @@ class Rofi(object):
         args.extend(self._common_args(**kwargs))
 
         # Run the dialog.
-        self.close()
-        results = subprocess.run(args, input=optionstr, stdout=subprocess.PIPE,
-                                 universal_newlines=True)
+        returncode, stdout = self._run_blocking(args, input=optionstr)
 
         # Figure out which option was selected.
-        stdout = results.stdout.strip()
+        stdout = stdout.strip()
         index = int(stdout) if stdout else -1
 
         # And map the return code to a key.
-        if results.returncode == 0:
+        if returncode == 0:
             key = 0
-        elif results.returncode == 1:
+        elif returncode == 1:
             key = -1
-        elif results.returncode > 9:
-            key = results.returncode - 9
+        elif returncode > 9:
+            key = returncode - 9
             if key in exit_keys:
                 raise SystemExit()
         else:
@@ -382,16 +490,14 @@ class Rofi(object):
             args.extend(self._common_args(**kwargs))
 
             # Run it.
-            self.close()
-            results = subprocess.run(args, input="", stdout=subprocess.PIPE,
-                                     universal_newlines=True)
+            returncode, stdout = self._run_blocking(args, input="")
 
             # Was the dialog cancelled?
-            if results.returncode == 1:
+            if returncode == 1:
                 return None
 
             # Get rid of the trailing newline and check its validity.
-            value, error = validator(results.stdout.rstrip('\n'))
+            value, error = validator(stdout.rstrip('\n'))
             if not error:
                 return value
 
