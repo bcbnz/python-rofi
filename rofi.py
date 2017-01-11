@@ -502,7 +502,7 @@ class Rofi(object):
                 return value
 
 
-    def text_entry(self, prompt, message=None, allow_blank=False, strip=True):
+    def text_entry(self, prompt, message=None, allow_blank=False, strip=True, **kwargs):
         """Prompt the user to enter a piece of text.
 
         Parameters
@@ -531,10 +531,10 @@ class Rofi(object):
 
             return text, None
 
-        return self._generic_entry(prompt, text_validator, message)
+        return self._generic_entry(prompt, text_validator, message, **kwargs)
 
 
-    def integer_entry(self, prompt, message=None, min=None, max=None):
+    def integer_entry(self, prompt, message=None, min=None, max=None, **kwargs):
         """Prompt the user to enter an integer.
 
         Parameters
@@ -572,10 +572,10 @@ class Rofi(object):
 
             return value, None
 
-        return self._generic_entry(prompt, integer_validator, message)
+        return self._generic_entry(prompt, integer_validator, message, **kwargs)
 
 
-    def float_entry(self, prompt, message=None, min=None, max=None):
+    def float_entry(self, prompt, message=None, min=None, max=None, **kwargs):
         """Prompt the user to enter a floating point number.
 
         Parameters
@@ -613,10 +613,10 @@ class Rofi(object):
 
             return value, None
 
-        return self._generic_entry(prompt, float_validator, message)
+        return self._generic_entry(prompt, float_validator, message, **kwargs)
 
 
-    def decimal_entry(self, prompt, message=None, min=None, max=None):
+    def decimal_entry(self, prompt, message=None, min=None, max=None, **kwargs):
         """Prompt the user to enter a decimal number.
 
         Parameters
@@ -654,10 +654,10 @@ class Rofi(object):
 
             return value, None
 
-        return self._generic_entry(prompt, decimal_validator, message)
+        return self._generic_entry(prompt, decimal_validator, message, **kwargs)
 
 
-    def exit_with_error(self, error):
+    def exit_with_error(self, error, **kwargs):
         """Report an error and exit.
 
         This raises a SystemExit exception to ask the interpreter to quit.
@@ -668,5 +668,5 @@ class Rofi(object):
             The error to report before quitting.
 
         """
-        self.error(error)
+        self.error(error, **kwargs)
         raise SystemExit(error)
