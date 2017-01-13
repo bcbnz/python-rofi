@@ -25,6 +25,7 @@
 #
 
 import atexit
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 import signal
 import subprocess
@@ -671,6 +672,147 @@ class Rofi(object):
             return value, None
 
         return self.generic_entry(prompt, decimal_validator, message, **kwargs)
+
+
+    def date_entry(self, prompt, message=None, formats=['%x', '%d/%m/%Y'], show_example=False, **kwargs):
+        """Prompt the user to enter a date.
+
+        Parameters
+        ----------
+        prompt: string
+            Prompt to display to the user.
+        message: string, optional
+            Message to display under the entry line.
+        formats: list of strings, optional
+            The formats that the user can enter dates in. These should be
+            format strings as accepted by the datetime.datetime.strptime()
+            function from the standard library. They are tried in order, and
+            the first that returns a date object without error is selected.
+            Note that the '%x' in the default list is the current locale's date
+            representation.
+        show_example: Boolean
+            If True, today's date in the first format given is appended to the
+            message.
+
+        Returns
+        -------
+        datetime.date, or None if the dialog is cancelled.
+
+        """
+        def date_validator(text):
+            # Try them in order.
+            for format in formats:
+                try:
+                    dt = datetime.strptime(text, format)
+                except ValueError:
+                    continue
+                else:
+                    # This one worked; good enough for us.
+                    return (dt.date(), None)
+
+            # None of the formats worked.
+            return (None, 'Please enter a valid date.')
+
+        # Add an example to the message?
+        if show_example:
+            message = message or ""
+            message += "Today's date in the correct format: " + datetime.now().strftime(formats[0])
+
+        return self.generic_entry(prompt, date_validator, message, **kwargs)
+
+
+    def time_entry(self, prompt, message=None, formats=['%X', '%H:%M', '%I:%M', '%H.%M', '%I.%M'], show_example=False, **kwargs):
+        """Prompt the user to enter a time.
+
+        Parameters
+        ----------
+        prompt: string
+            Prompt to display to the user.
+        message: string, optional
+            Message to display under the entry line.
+        formats: list of strings, optional
+            The formats that the user can enter times in. These should be
+            format strings as accepted by the datetime.datetime.strptime()
+            function from the standard library. They are tried in order, and
+            the first that returns a time object without error is selected.
+            Note that the '%X' in the default list is the current locale's time
+            representation.
+        show_example: Boolean
+            If True, the current time in the first format given is appended to
+            the message.
+
+        Returns
+        -------
+        datetime.time, or None if the dialog is cancelled.
+
+        """
+        def time_validator(text):
+            # Try them in order.
+            for format in formats:
+                try:
+                    dt = datetime.strptime(text, format)
+                except ValueError:
+                    continue
+                else:
+                    # This one worked; good enough for us.
+                    return (dt.time(), None)
+
+            # None of the formats worked.
+            return (None, 'Please enter a valid time.')
+
+        # Add an example to the message?
+        if show_example:
+            message = message or ""
+            message += "Current time in the correct format: " + datetime.now().strftime(formats[0])
+
+        return self.generic_entry(prompt, time_validator, message, **kwargs)
+
+
+    def datetime_entry(self, prompt, message=None, formats=['%x %X'], show_example=False, **kwargs):
+        """Prompt the user to enter a date and time.
+
+        Parameters
+        ----------
+        prompt: string
+            Prompt to display to the user.
+        message: string, optional
+            Message to display under the entry line.
+        formats: list of strings, optional
+            The formats that the user can enter the date and time in. These
+            should be format strings as accepted by the
+            datetime.datetime.strptime() function from the standard library.
+            They are tried in order, and the first that returns a datetime
+            object without error is selected.  Note that the '%x %X' in the
+            default list is the current locale's date and time representation.
+        show_example: Boolean
+            If True, the current date and time in the first format given is appended to
+            the message.
+
+        Returns
+        -------
+        datetime.datetime, or None if the dialog is cancelled.
+
+        """
+        def datetime_validator(text):
+            # Try them in order.
+            for format in formats:
+                try:
+                    dt = datetime.strptime(text, format)
+                except ValueError:
+                    continue
+                else:
+                    # This one worked; good enough for us.
+                    return (dt, None)
+
+            # None of the formats worked.
+            return (None, 'Please enter a valid date and time.')
+
+        # Add an example to the message?
+        if show_example:
+            message = message or ""
+            message += "Current date and time in the correct format: " + datetime.now().strftime(formats[0])
+
+        return self.generic_entry(prompt, datetime_validator, message, **kwargs)
 
 
     def exit_with_error(self, error, **kwargs):
