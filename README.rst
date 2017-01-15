@@ -168,7 +168,7 @@ documentation for full details of these parameters.
 Requirements
 ============
 
-You need to have the `rofi` executable available on the system path (i.e.,
+You need to have the ``rofi`` executable available on the system path (i.e.,
 install Rofi!). Everything else that python-rofi needs is provided by the
 Python standard libraries.
 
@@ -186,3 +186,13 @@ What license does it use?
 =========================
 
 The MIT license, the same as Rofi itself.
+
+
+Bug reports
+===========
+
+The project is developed on GitHub_. Please file any bug reports or feature
+requests on the Issues_ page there.
+
+.. _GitHub: https://github.com/bcbnz/python-rofi
+.. _Issues: https://github.com/bcbnz/python-rofi/issues
