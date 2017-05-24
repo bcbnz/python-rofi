@@ -334,7 +334,7 @@ class Rofi(object):
         self._run_nonblocking(args)
 
 
-    def select(self, prompt, options, message="", select=None, **kwargs):
+    def select(self, prompt, options, message="", select=None, case_sensitive=False, **kwargs):
         """Show a list of options and return user selection.
 
         This method blocks until the user makes their choice.
@@ -351,6 +351,8 @@ class Rofi(object):
             contain Pango markup, and any text content should be escaped.
         select: integer, optional
             Set which option is initially selected.
+        case_sensitive: bool, optional
+            Set if pattern matching should be made case sensitive.
         keyN: tuple (string, string); optional
             Custom key bindings where N is one or greater. The first entry in
             the tuple should be a string defining the key, e.g., "Alt+x" or
@@ -380,6 +382,8 @@ class Rofi(object):
 
         # Set up arguments.
         args = ['rofi', '-dmenu', '-p', prompt, '-format', 'i']
+        if not case_sensitive:
+            args.extend(['-i'])
         if select is not None:
             args.extend(['-selected-row', str(select)])
 
