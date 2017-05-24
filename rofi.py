@@ -282,6 +282,21 @@ class Rofi(object):
         if location is not None:
             args.extend(['-location', str(location)])
 
+        # eh row width in char
+        eh = kwargs.get('eh', 1)
+        if eh is not None:
+            args.extend(['-eh', str(eh)])
+
+        # separator
+        sep = kwargs.get('sep', None)
+        if sep is not None:
+            args.extend(['-sep', str(sep)])
+
+        # case_sensitive mode
+        case_sensitive = kwargs.get('case_sensitive', None)
+        if case_sensitive is not None:
+            args.extend(['-i'])
+
         # Done.
         return args
 
@@ -376,7 +391,9 @@ class Rofi(object):
 
         """
         # Replace newlines and turn the options into a single string.
-        optionstr = '\n'.join(option.replace('\n', ' ') for option in options)
+        optionstr = (self.sep).join(
+            option.replace('\n', ' ').replace('\r', '\n') for option in options
+        )
 
         # Set up arguments.
         args = ['rofi', '-dmenu', '-p', prompt, '-format', 'i']
