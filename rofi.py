@@ -390,10 +390,8 @@ class Rofi(object):
             key N.
 
         """
-        # Replace newlines and turn the options into a single string.
-        optionstr = (self.sep).join(
-            option.replace('\n', ' ').replace('\r', '\n') for option in options
-        )
+        # Turn the options into a single string.
+        optionstr = kwargs.get("sep", "\n").join(options)
 
         # Set up arguments.
         args = ['rofi', '-dmenu', '-p', prompt, '-format', 'i']
