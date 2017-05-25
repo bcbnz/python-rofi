@@ -297,6 +297,21 @@ class Rofi(object):
         if case_sensitive is not None:
             args.extend(['-i'])
 
+        # normal_window mode
+        normal_window = kwargs.get('normal_window', False)
+        if normal_window:
+            args.extend(['-normal-window'])
+
+        # markup_rows mode
+        markup_rows = kwargs.get('markup_rows', False)
+        if markup_rows:
+            args.extend(['-markup-rows'])
+
+        # multi_select mode
+        multi_select = kwargs.get('multi_select', False)
+        if multi_select:
+            args.extend(['-multi-select'])
+
         # Done.
         return args
 
@@ -447,7 +462,7 @@ class Rofi(object):
 
         # Figure out which option was selected.
         stdout = stdout.strip()
-        index = int(stdout) if stdout else -1
+        indices = [int(s) for s in stdout.split("\n")]
 
         # And map the return code to a key.
         if returncode == 0:
@@ -462,7 +477,7 @@ class Rofi(object):
             self.exit_with_error("Unexpected rofi returncode {0:d}.".format(results.returncode))
 
         # And return.
-        return index, key
+        return indices, key
 
 
     def generic_entry(self, prompt, validator=None, message=None, **kwargs):
