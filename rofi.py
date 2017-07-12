@@ -466,7 +466,10 @@ class Rofi(object):
 
         # Figure out which option was selected.
         stdout = stdout.strip()
-        indices = [int(s) for s in stdout.split("\n")]
+        if stdout:
+            indices = [int(s) for s in stdout.split("\n")]
+        else:
+            indices = []
 
         # And map the return code to a key.
         if returncode == 0:
