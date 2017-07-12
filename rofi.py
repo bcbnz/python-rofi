@@ -282,6 +282,36 @@ class Rofi(object):
         if location is not None:
             args.extend(['-location', str(location)])
 
+        # eh row width in char
+        eh = kwargs.get('eh', 1)
+        if eh is not None:
+            args.extend(['-eh', str(eh)])
+
+        # separator
+        sep = kwargs.get('sep', None)
+        if sep is not None:
+            args.extend(['-sep', str(sep)])
+
+        # case_sensitive mode
+        case_sensitive = kwargs.get('case_sensitive', None)
+        if case_sensitive is not None:
+            args.extend(['-i'])
+
+        # normal_window mode
+        normal_window = kwargs.get('normal_window', False)
+        if normal_window:
+            args.extend(['-normal-window'])
+
+        # markup_rows mode
+        markup_rows = kwargs.get('markup_rows', False)
+        if markup_rows:
+            args.extend(['-markup-rows'])
+
+        # multi_select mode
+        multi_select = kwargs.get('multi_select', False)
+        if multi_select:
+            args.extend(['-multi-select'])
+
         # Done.
         return args
 
@@ -334,7 +364,7 @@ class Rofi(object):
         self._run_nonblocking(args)
 
 
-    def select(self, prompt, options, message="", select=None, **kwargs):
+    def select(self, prompt, options, message="", select=None, case_sensitive=False, **kwargs):
         """Show a list of options and return user selection.
 
         This method blocks until the user makes their choice.
@@ -351,6 +381,8 @@ class Rofi(object):
             contain Pango markup, and any text content should be escaped.
         select: integer, optional
             Set which option is initially selected.
+        case_sensitive: bool, optional
+            Set if pattern matching should be made case sensitive.
         keyN: tuple (string, string); optional
             Custom key bindings where N is one or greater. The first entry in
             the tuple should be a string defining the key, e.g., "Alt+x" or
@@ -375,11 +407,13 @@ class Rofi(object):
             key N.
 
         """
-        # Replace newlines and turn the options into a single string.
-        optionstr = '\n'.join(option.replace('\n', ' ') for option in options)
+        # Turn the options into a single string.
+        optionstr = kwargs.get("sep", "\n").join(options)
 
         # Set up arguments.
         args = ['rofi', '-dmenu', '-p', prompt, '-format', 'i']
+        if not case_sensitive:
+            args.extend(['-i'])
         if select is not None:
             args.extend(['-selected-row', str(select)])
 
@@ -432,7 +466,10 @@ class Rofi(object):
 
         # Figure out which option was selected.
         stdout = stdout.strip()
-        index = int(stdout) if stdout else -1
+        if stdout:
+            indices = [int(s) for s in stdout.split("\n")]
+        else:
+            indices = []
 
         # And map the return code to a key.
         if returncode == 0:
@@ -447,7 +484,7 @@ class Rofi(object):
             self.exit_with_error("Unexpected rofi returncode {0:d}.".format(results.returncode))
 
         # And return.
-        return index, key
+        return indices, key
 
 
     def generic_entry(self, prompt, validator=None, message=None, **kwargs):
