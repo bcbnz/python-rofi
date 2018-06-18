@@ -548,8 +548,6 @@ class Rofi(object):
         strip: Boolean
             Whether to strip leading and trailing whitespace from the entered
             value.
-        other_args: list
-            A list of other arguments to pass in to rofi command
 
         Returns
         -------
@@ -579,8 +577,6 @@ class Rofi(object):
             Message to display under the entry line.
         min, max: integer, optional
             Minimum and maximum values to allow. If None, no limit is imposed.
-        other_args: list
-            A list of other arguments to pass in to rofi command
 
         Returns
         -------
@@ -622,8 +618,6 @@ class Rofi(object):
             Message to display under the entry line.
         min, max: float, optional
             Minimum and maximum values to allow. If None, no limit is imposed.
-        other_args: list
-            A list of other arguments to pass in to rofi command
 
         Returns
         -------
@@ -665,8 +659,6 @@ class Rofi(object):
             Message to display under the entry line.
         min, max: Decimal, optional
             Minimum and maximum values to allow. If None, no limit is imposed.
-        other_args: list
-            A list of other arguments to pass in to rofi command
 
         Returns
         -------
@@ -717,8 +709,6 @@ class Rofi(object):
         show_example: Boolean
             If True, today's date in the first format given is appended to the
             message.
-        other_args: list
-            A list of other arguments to pass in to rofi command
 
         Returns
         -------
@@ -767,8 +757,6 @@ class Rofi(object):
         show_example: Boolean
             If True, the current time in the first format given is appended to
             the message.
-        other_args: list
-            A list of other arguments to pass in to rofi command
 
         Returns
         -------
@@ -817,8 +805,6 @@ class Rofi(object):
         show_example: Boolean
             If True, the current date and time in the first format given is appended to
             the message.
-        other_args: list
-            A list of other arguments to pass in to rofi command
 
         Returns
         -------
