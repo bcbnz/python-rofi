@@ -164,9 +164,21 @@ documentation for full details of these parameters.
 
 * ``location``:  The position of the window on the screen.
 
-* You can also pass in arbitrary arguments to rofi through the ``rofi_args`` parameter in
-  the ``Rofi`` constructor or any of the methods on a ``Rofi`` object which launch rofi
-  (``text_entry``, ``select``, etc)
+* You can also pass in arbitrary arguments to rofi through the ``rofi_args``
+  parameter. These have to be passed in as a list of strings, with every
+  argument in a seperate string. For example, to make a selection case
+  insensitive::
+    
+    r = Rofi()
+    r.select('Choose one', ['option 1', 'option 2', 'option 3'],
+        rofi_args=['-i'])
+  
+  or, to choose a different style for an instance of ``Rofi``::
+
+    r = Rofi(rofi_args=['-theme', 'path/to/theme.rasi'])
+    r.status('Stuff is happening, please wait...')
+
+
 
 
 Requirements
