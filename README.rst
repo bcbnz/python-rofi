@@ -164,7 +164,7 @@ documentation for full details of these parameters.
 
 * ``location``:  The position of the window on the screen.
 
-* You can also pass in arbitrary arguments to rofi through the ``other_args`` parameter in
+* You can also pass in arbitrary arguments to rofi through the ``rofi_args`` parameter in
   the ``Rofi`` constructor or any of the methods on a ``Rofi`` object which launch rofi
   (``text_entry``, ``select``, etc)
 
