@@ -343,6 +343,44 @@ class Rofi(object):
         # Update the status.
         self._run_nonblocking(args)
 
+    def _user_keys(self, args, display_bindings, **kwargs):
+        user_keys = set()
+        for k, v in kwargs.items():
+            # See if the keyword name matches the needed format.
+            if not k.startswith('key'):
+                continue
+            try:
+                keynum = int(k[3:])
+            except ValueError:
+                continue
+
+            # Add it to the set.
+            key, action = v
+            user_keys.add(keynum)
+            args.extend(['-kb-custom-{0:s}'.format(k[3:]), key])
+            if action:
+                display_bindings.append("<b>{0:s}</b>: {1:s}".format(key, action))
+        return user_keys
+
+
+    def _exit_keys(self, args, user_keys):
+        exit_keys = set()
+        next_key = 10
+        for key in self.exit_hotkeys:
+            while next_key in user_keys:
+                next_key += 1
+            exit_keys.add(next_key)
+            args.extend(['-kb-custom-{0:d}'.format(next_key), key])
+            next_key += 1
+        return exit_keys
+
+
+    def _message(self, message, display_bindings):
+        message = message or ""
+        if display_bindings:
+            message += "\n" + "  ".join(display_bindings)
+        return message
+
 
     def select(self, prompt, options, rofi_args=None, message="", select=None, **kwargs):
         """Show a list of options and return user selection.
@@ -398,38 +436,13 @@ class Rofi(object):
         display_bindings = []
 
         # Configure the key bindings.
-        user_keys = set()
-        for k, v in kwargs.items():
-            # See if the keyword name matches the needed format.
-            if not k.startswith('key'):
-                continue
-            try:
-                keynum = int(k[3:])
-            except ValueError:
-                continue
-
-            # Add it to the set.
-            key, action = v
-            user_keys.add(keynum)
-            args.extend(['-kb-custom-{0:s}'.format(k[3:]), key])
-            if action:
-                display_bindings.append("<b>{0:s}</b>: {1:s}".format(key, action))
+        user_keys = self._user_keys(args, display_bindings, **kwargs)
 
         # And the global exit bindings.
-        exit_keys = set()
-        next_key = 10
-        for key in self.exit_hotkeys:
-            while next_key in user_keys:
-                next_key += 1
-            exit_keys.add(next_key)
-            args.extend(['-kb-custom-{0:d}'.format(next_key), key])
-            next_key += 1
+        exit_keys = self._exit_keys(args, user_keys)
 
         # Add any displayed key bindings to the message.
-        message = message or ""
-        if display_bindings:
-            message += "\n" + "  ".join(display_bindings)
-        message = message.strip()
+        message = self._message(message, display_bindings)
 
         # If we have a message, add it to the arguments.
         if message:
