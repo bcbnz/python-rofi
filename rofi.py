@@ -540,6 +540,9 @@ class Rofi(object):
             Prompt to display to the user.
         message: string, optional
             Message to display under the entry line.
+        suggestions: List[string]
+            Options that will try to match and replace your text. Rofi will try hard to match. To escape rofi matching,
+            ends your text entry with __ (double underscore). They won't be included.
         allow_blank: Boolean
             Whether to allow blank entries.
         strip: Boolean
@@ -561,7 +564,9 @@ class Rofi(object):
             
             return text, None
         
-        return self.generic_entry(prompt, text_validator, message, rofi_args, options=suggestions, **kwargs)
+        text = self.generic_entry(prompt, text_validator, message, rofi_args, options=suggestions, **kwargs)
+        if text.endswith("__"):
+            return text[:-2]
     
     
     def integer_entry(self, prompt, message=None, min=None, max=None, rofi_args=None, **kwargs):
