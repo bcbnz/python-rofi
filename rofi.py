@@ -344,7 +344,7 @@ class Rofi(object):
         # Update the status.
         self._run_nonblocking(args)
     
-    def select(self, prompt, options, rofi_args=None, message="", select=None, **kwargs):
+    def select(self, options, prompt="select: ", rofi_args=None, message="", select=None, **kwargs):
         """Show a list of options and return user selection.
 
         This method blocks until the user makes their choice.
@@ -530,7 +530,7 @@ class Rofi(object):
             else:
                 return text
     
-    def text_entry(self, prompt, message=None, suggestions=None, allow_blank=False, strip=True,
+    def text_entry(self, prompt="", message=None, suggestions=None, allow_blank=False, strip=True,
                    rofi_args=None, **kwargs):
         """Prompt the user to enter a piece of text.
 
