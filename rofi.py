@@ -75,7 +75,7 @@ class Rofi(object):
     
     def __init__(self, lines=None, fixed_lines=None, width=None,
                  fullscreen=None, location=None,
-                 exit_hotkeys=('Alt+F4', 'Control+q'), rofi_args=None):
+                 exit_hotkeys=('Alt+F4', 'Control+q'), rofi_args=None, markup_rows=True):
         """
         Parameters
         ----------
@@ -121,6 +121,7 @@ class Rofi(object):
         self.location = location
         self.exit_hotkeys = exit_hotkeys
         self.rofi_args = rofi_args or []
+        self.markup_rows = markup_rows
         
         # Don't want a window left on the screen if we exit unexpectedly
         # (e.g., an unhandled exception).
@@ -282,6 +283,10 @@ class Rofi(object):
         location = kwargs.get('location', self.location)
         if location is not None:
             args.extend(['-location', str(location)])
+            
+        if self.markup_rows:
+            args.append('-markup-rows')
+            
         
         # Any other arguments
         args.extend(self.rofi_args)
