@@ -188,7 +188,7 @@ class Rofi(object):
             # Clean up.
             self._process = None
     
-    def _run_blocking(self, args, input=None):
+    def _run_blocking(self, args, options=None):
         """Internal API: run a blocking command with subprocess.
 
         This closes any open non-blocking dialog before running the command.
@@ -206,6 +206,8 @@ class Rofi(object):
             The exit code (integer) and stdout value (string) from the process.
 
         """
+        if options is not None:
+            options = '\n'.join(option.replace('\n', ' ') for option in options)
         # Close any existing dialog.
         if self._process:
             self.close()
@@ -217,17 +219,17 @@ class Rofi(object):
         
         # Use the run() method if available (Python 3.5+).
         if hasattr(subprocess, 'run'):
-            result = subprocess.run(args, input=input, **kwargs)
+            result = subprocess.run(args, input=options, **kwargs)
             return result.returncode, result.stdout
         
         # Have to do our own. If we need to feed stdin, we must open a pipe.
-        if input is not None:
+        if options is not None:
             kwargs['stdin'] = subprocess.PIPE
         
         # Start the process.
         with Popen(args, **kwargs) as proc:
             # Talk to it (no timeout). This will wait until termination.
-            stdout, stderr = proc.communicate(input)
+            stdout, stderr = proc.communicate(options)
             
             # Find out the return code.
             returncode = proc.poll()
@@ -380,7 +382,6 @@ class Rofi(object):
         """
         rofi_args = rofi_args or []
         # Replace newlines and turn the options into a single string.
-        optionstr = '\n'.join(option.replace('\n', ' ') for option in options)
         
         # Set up arguments.
         args = ['rofi', '-dmenu', '-p', prompt, '-format', 'i']
@@ -433,7 +434,7 @@ class Rofi(object):
         args.extend(rofi_args)
         
         # Run the dialog.
-        returncode, stdout = self._run_blocking(args, input=optionstr)
+        returncode, stdout = self._run_blocking(args, options=options)
         
         # Figure out which option was selected.
         stdout = stdout.strip()
@@ -449,12 +450,12 @@ class Rofi(object):
             if key in exit_keys:
                 raise SystemExit()
         else:
-            self.exit_with_error("Unexpected rofi returncode {0:d}.".format(results.returncode))
+            self.exit_with_error("Unexpected rofi returncode {0:d}.".format(returncode))
         
         # And return.
         return index, key
     
-    def generic_entry(self, prompt, validator=None, message=None, rofi_args=None, **kwargs):
+    def generic_entry(self, prompt, validator=None, message=None, rofi_args=None, options=None, **kwargs):
         """A generic entry box.
 
         Parameters
@@ -509,7 +510,7 @@ class Rofi(object):
             args.extend(rofi_args)
             
             # Run it.
-            returncode, stdout = self._run_blocking(args, input="")
+            returncode, stdout = self._run_blocking(args, options=options)
             
             # Was the dialog cancelled?
             if returncode == 1:
@@ -524,7 +525,7 @@ class Rofi(object):
             else:
                 return text
     
-    def text_entry(self, prompt, message=None, allow_blank=False, strip=True,
+    def text_entry(self, prompt, message=None, suggestions=None, allow_blank=False, strip=True,
                    rofi_args=None, **kwargs):
         """Prompt the user to enter a piece of text.
 
@@ -555,7 +556,8 @@ class Rofi(object):
             
             return text, None
         
-        return self.generic_entry(prompt, text_validator, message, rofi_args, **kwargs)
+        return self.generic_entry(prompt, text_validator, message, rofi_args, options=suggestions, **kwargs)
+    
     
     def integer_entry(self, prompt, message=None, min=None, max=None, rofi_args=None, **kwargs):
         """Prompt the user to enter an integer.
