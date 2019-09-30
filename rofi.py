@@ -608,8 +608,6 @@ class Rofi(object):
             raise ValueError("Maximum limit has to be more than the minimum limit.")
         
         def integer_validator(text):
-            error = None
-            
             # Attempt to convert to integer.
             try:
                 value = int(text)
@@ -648,8 +646,6 @@ class Rofi(object):
             raise ValueError("Maximum limit has to be more than the minimum limit.")
         
         def float_validator(text):
-            error = None
-            
             # Attempt to convert to float.
             try:
                 value = float(text)
