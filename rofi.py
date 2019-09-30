@@ -301,15 +301,19 @@ class Rofi(object):
             Error message to show.
 
         """
+        args = self.build_rofi_args_for_message(kwargs, message, rofi_args)
+
+        # Close any existing window and show the error.
+        self._run_blocking(args)
+
+    def build_rofi_args_for_message(self, kwargs, message, rofi_args):
         rofi_args = rofi_args or []
         # Generate arguments list.
         args = ['rofi', '-e', message]
         args.extend(self._common_args(allow_fullscreen=False, **kwargs))
         args.extend(rofi_args)
-        
-        # Close any existing window and show the error.
-        self._run_blocking(args)
-    
+        return args
+
     def status(self, message, rofi_args=None, **kwargs):
         """Show a status message.
 
@@ -328,12 +332,8 @@ class Rofi(object):
             Progress message to show.
 
         """
-        rofi_args = rofi_args or []
-        # Generate arguments list.
-        args = ['rofi', '-e', message]
-        args.extend(self._common_args(allow_fullscreen=False, **kwargs))
-        args.extend(rofi_args)
-        
+        args = self.build_rofi_args_for_message(kwargs, message, rofi_args)
+
         # Update the status.
         self._run_nonblocking(args)
     
