@@ -29,6 +29,10 @@ from decimal import Decimal, InvalidOperation
 import signal
 import subprocess
 import time
+from collections.abc import Sequence
+from collections import namedtuple
+
+RofiSelectResult = namedtuple("RofiSelectResult", ["selection", "key"])
 
 # Python < 3.2 doesn't provide a context manager interface for Popen.
 # Let's make our own wrapper if needed.
@@ -198,8 +202,9 @@ class Rofi(object):
         ----------
         args: Popen constructor arguments
             Command to run.
-        input: string
-            Value to feed to the stdin of the process.
+        options
+            a sequence (object with some methods __get_item__ available). Can be a list.
+            More at https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence
 
         Returns
         -------
@@ -208,7 +213,7 @@ class Rofi(object):
 
         """
         if options is not None:
-            options = '\n'.join(option.replace('\n', ' ') for option in options)
+            options = '\n'.join(str(option).replace('\n', ' ') for option in options)
         else:
             options = ""
         # Close any existing dialog.
@@ -355,9 +360,11 @@ class Rofi(object):
         ----------
         prompt: string
             The prompt telling the user what they are selecting.
-        options: list of strings
+        options : sequence
+            a sequence (object with some methods __get_item__ available). Can be a list.
+            More at https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence
             The options they can choose from. Any newline characters are
-            replaced with spaces.
+            replaced with spaces. For more complex type than lists or tuples, __str__ will be called.
         message: string, optional
             Message to show between the prompt and the options. This can
             contain Pango markup, and any text content should be escaped.
@@ -379,14 +386,12 @@ class Rofi(object):
 
         Returns
         -------
-        tuple (index, key)
-            The index of the option the user selected, or -1 if they cancelled
-            the dialog.
-            Key indicates which key was pressed, with 0 being 'OK' (generally
-            Enter), -1 being 'Cancel' (generally escape), and N being custom
-            key N.
-
+        (Item, key)
+         Item is the Item of the sequence that has been chosen. None if None has been chosen.
+         key is the Key used by the user (ex: ESCAPE, RETURN ...)
         """
+        if not isinstance(options, Sequence):
+            raise Exception("options must be a abc.collections.sequence")
         rofi_args = rofi_args or []
         # Replace newlines and turn the options into a single string.
         
@@ -446,6 +451,10 @@ class Rofi(object):
         # Figure out which option was selected.
         stdout = stdout.strip()
         index = int(stdout) if stdout else -1
+        if index == -1:
+            item = None
+        else:
+            item = options[index]
         
         # And map the return code to a key.
         if returncode == 0:
@@ -460,7 +469,7 @@ class Rofi(object):
             self.exit_with_error("Unexpected rofi returncode {0:d}.".format(returncode))
         
         # And return.
-        return index, key
+        return RofiSelectResult(item, key)
     
     def generic_entry(self, prompt, validator=None, message=None, rofi_args=None, options=None, **kwargs):
         """A generic entry box.
@@ -542,7 +551,11 @@ class Rofi(object):
             Prompt to display to the user.
         message: string, optional
             Message to display under the entry line.
-        suggestions: List[string]
+        suggestions : sequence
+            a sequence (object with some methods __get_item__ available). Can be a list.
+            More at https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence
+            The options they can choose from. Any newline characters are
+            replaced with spaces. For more complex type than lists or tuples, __str__ will be called.
             Options that will try to match and replace your text. Rofi will try hard to match. To escape rofi matching,
             ends your text entry with __ (double underscore). They won't be included.
         allow_blank: Boolean
