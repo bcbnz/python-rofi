@@ -209,6 +209,8 @@ class Rofi(object):
         """
         if options is not None:
             options = '\n'.join(option.replace('\n', ' ') for option in options)
+        else:
+            options = ""
         # Close any existing dialog.
         if self._process:
             self.close()
@@ -567,6 +569,8 @@ class Rofi(object):
         text = self.generic_entry(prompt, text_validator, message, rofi_args, options=suggestions, **kwargs)
         if text.endswith("__"):
             return text[:-2]
+        else:
+            return text
     
     
     def integer_entry(self, prompt, message=None, min=None, max=None, rofi_args=None, **kwargs):
