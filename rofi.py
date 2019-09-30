@@ -384,7 +384,7 @@ class Rofi(object):
         # Replace newlines and turn the options into a single string.
         
         # Set up arguments.
-        args = ['rofi', '-dmenu', '-p', prompt, '-format', 'i']
+        args = ['rofi', '-dmenu', '-no-custom', '-p', prompt, '-format', 'i']
         if select is not None:
             args.extend(['-selected-row', str(select)])
         
