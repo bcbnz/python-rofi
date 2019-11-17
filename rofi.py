@@ -786,7 +786,7 @@ class Rofi(object):
             message = message or ""
             message += "Current time in the correct format: " + datetime.now().strftime(formats[0])
 
-        return self.generic_entry(prompt, time_validator, message, rofi_args=None, stdin_str, **kwargs)
+        return self.generic_entry(prompt, time_validator, message, rofi_args=None, stdin_str = stdin_str, **kwargs)
 
 
     def datetime_entry(self, prompt, message=None, formats=['%x %X'], show_example=False,
