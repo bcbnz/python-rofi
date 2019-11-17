@@ -462,7 +462,7 @@ class Rofi(object):
         return index, key
 
 
-    def generic_entry(self, prompt, validator=None, message=None, rofi_args=None, **kwargs):
+    def generic_entry(self, prompt, validator=None, message=None, rofi_args=None, stdin_str="", **kwargs):
         """A generic entry box.
 
         Parameters
@@ -481,6 +481,8 @@ class Rofi(object):
             user entered is returned as-is.
         message: string
             Optional message to display under the entry.
+        stdin_str: string
+            Optional string to pass to rofi stdin.
 
         Returns
         -------
@@ -517,7 +519,7 @@ class Rofi(object):
             args.extend(rofi_args)
 
             # Run it.
-            returncode, stdout = self._run_blocking(args, input="")
+            returncode, stdout = self._run_blocking(args, input=stdin_str)
 
             # Was the dialog cancelled?
             if returncode == 1:
@@ -534,7 +536,7 @@ class Rofi(object):
 
 
     def text_entry(self, prompt, message=None, allow_blank=False, strip=True,
-            rofi_args=None, **kwargs):
+            rofi_args=None, stdin_str="", **kwargs):
         """Prompt the user to enter a piece of text.
 
         Parameters
@@ -548,6 +550,8 @@ class Rofi(object):
         strip: Boolean
             Whether to strip leading and trailing whitespace from the entered
             value.
+        stdin_str: String
+            String to pass to rofi stdin.
 
         Returns
         -------
@@ -563,10 +567,10 @@ class Rofi(object):
 
             return text, None
 
-        return self.generic_entry(prompt, text_validator, message, rofi_args, **kwargs)
+        return self.generic_entry(prompt, text_validator, message, rofi_args, stdin_str, **kwargs)
 
 
-    def integer_entry(self, prompt, message=None, min=None, max=None, rofi_args=None, **kwargs):
+    def integer_entry(self, prompt, message=None, min=None, max=None, rofi_args=None, stdin_str="", **kwargs):
         """Prompt the user to enter an integer.
 
         Parameters
@@ -604,10 +608,10 @@ class Rofi(object):
 
             return value, None
 
-        return self.generic_entry(prompt, integer_validator, message, rofi_args, **kwargs)
+        return self.generic_entry(prompt, integer_validator, message, rofi_args, stdin_str, **kwargs)
 
 
-    def float_entry(self, prompt, message=None, min=None, max=None, rofi_args=None, **kwargs):
+    def float_entry(self, prompt, message=None, min=None, max=None, rofi_args=None, stdin_str="", **kwargs):
         """Prompt the user to enter a floating point number.
 
         Parameters
@@ -645,10 +649,10 @@ class Rofi(object):
 
             return value, None
 
-        return self.generic_entry(prompt, float_validator, message, rofi_args, **kwargs)
+        return self.generic_entry(prompt, float_validator, message, rofi_args, stdin_str,stdin_str,  **kwargs)
 
 
-    def decimal_entry(self, prompt, message=None, min=None, max=None, rofi_args=None, **kwargs):
+    def decimal_entry(self, prompt, message=None, min=None, max=None, rofi_args=None, stdin_str="", **kwargs):
         """Prompt the user to enter a decimal number.
 
         Parameters
@@ -686,11 +690,11 @@ class Rofi(object):
 
             return value, None
 
-        return self.generic_entry(prompt, decimal_validator, message, rofi_args, **kwargs)
+        return self.generic_entry(prompt, decimal_validator, message, rofi_args, stdin_str, **kwargs)
 
 
     def date_entry(self, prompt, message=None, formats=['%x', '%d/%m/%Y'],
-            show_example=False, rofi_args=None, **kwargs):
+            show_example=False, rofi_args=None, stdin_str="", **kwargs):
         """Prompt the user to enter a date.
 
         Parameters
@@ -734,11 +738,11 @@ class Rofi(object):
             message = message or ""
             message += "Today's date in the correct format: " + datetime.now().strftime(formats[0])
 
-        return self.generic_entry(prompt, date_validator, message, rofi_args, **kwargs)
+        return self.generic_entry(prompt, date_validator, message, rofi_args, stdin_str, **kwargs)
 
 
     def time_entry(self, prompt, message=None, formats=['%X', '%H:%M', '%I:%M', '%H.%M',
-        '%I.%M'], show_example=False, rofi_args=None, **kwargs):
+        '%I.%M'], show_example=False, rofi_args=None, stdin_str="", **kwargs):
         """Prompt the user to enter a time.
 
         Parameters
@@ -782,11 +786,11 @@ class Rofi(object):
             message = message or ""
             message += "Current time in the correct format: " + datetime.now().strftime(formats[0])
 
-        return self.generic_entry(prompt, time_validator, message, rofi_args=None, **kwargs)
+        return self.generic_entry(prompt, time_validator, message, rofi_args=None, stdin_str = stdin_str, **kwargs)
 
 
     def datetime_entry(self, prompt, message=None, formats=['%x %X'], show_example=False,
-            rofi_args=None, **kwargs):
+            rofi_args=None, stdin_str="", **kwargs):
         """Prompt the user to enter a date and time.
 
         Parameters
@@ -830,7 +834,7 @@ class Rofi(object):
             message = message or ""
             message += "Current date and time in the correct format: " + datetime.now().strftime(formats[0])
 
-        return self.generic_entry(prompt, datetime_validator, message, rofi_args, **kwargs)
+        return self.generic_entry(prompt, datetime_validator, message, rofi_args, stdin_str, **kwargs)
 
 
     def exit_with_error(self, error, **kwargs):
