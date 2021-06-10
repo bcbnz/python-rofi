@@ -390,7 +390,7 @@ class Rofi(object):
         optionstr = '\n'.join(option.replace('\n', ' ') for option in options)
 
         # Set up arguments.
-        args = ['rofi', '-dmenu', '-p', prompt, '-format', 'i']
+        args = ['rofi', '-dmenu', '-p', prompt, '-format', 'i'] + rofi_args
         if select is not None:
             args.extend(['-selected-row', str(select)])
 
